@@ -27,7 +27,7 @@ jobs:
     - name: Setup Android SDK & Accept Licenses
       uses: android-actions/setup-android@v3
       with:
-        packages: 'build-tools;33.0.2 platforms;android-33 platform-tools'
+        packages: 'build-tools;33.0.2 platforms;android-33 platform-tools build-tools;37.0.0'
         accept-android-sdk-licenses: true
 
     - name: Install System Dependencies & Rust
@@ -49,12 +49,14 @@ jobs:
 
     - name: Build APK with Buildozer
       run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        yes | sdkmanager --licenses || true
         buildozer -v android debug
         echo "Locating generated APK files:"
         find . -name "*.apk" -ls
 
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-action@v4 || uses: actions/upload-artifact@v4
       with:
         name: X9-Vault-APK
         path: |
