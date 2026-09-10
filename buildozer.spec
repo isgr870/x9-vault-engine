@@ -21,3 +21,4 @@ android.wakelock = True
 [buildozer]
 log_level = 2
 warn_on_build_tools_version = 1
+android.accept_sdk_license = True
