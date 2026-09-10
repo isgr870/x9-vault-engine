@@ -27,7 +27,7 @@ jobs:
     - name: Setup Android SDK & Accept Licenses
       uses: android-actions/setup-android@v3
       with:
-        packages: 'build-tools;33.0.2 platforms;android-33 platform-tools build-tools;37.0.0'
+        packages: 'build-tools;33.0.2 platforms;android-33 platform-tools cmdline-tools;latest'
         accept-android-sdk-licenses: true
 
     - name: Install System Dependencies & Rust
@@ -57,6 +57,7 @@ jobs:
     - name: Build APK with Buildozer
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
         buildozer -v android debug
         echo "Locating generated APK files:"
         find . -name "*.apk" -ls
