@@ -47,12 +47,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install "cython<3.0.0" buildozer kivy
 
-    - name: Configure Buildozer SDK Symlink
+    - name: Configure Buildozer SDK & Legacy Tools Symlinks
       run: |
+        SDK_PATH="/usr/local/lib/android/sdk"
+        mkdir -p "$SDK_PATH/tools/bin"
+        if [ -f "$SDK_PATH/cmdline-tools/latest/bin/sdkmanager" ]; then
+          ln -sf "$SDK_PATH/cmdline-tools/latest/bin/sdkmanager" "$SDK_PATH/tools/bin/sdkmanager"
+        fi
         mkdir -p /home/runner/.buildozer/android/platform
         rm -rf /home/runner/.buildozer/android/platform/android-sdk
-        ln -s /usr/local/lib/android/sdk /home/runner/.buildozer/android/platform/android-sdk
-        echo "SDK symlink created successfully."
+        ln -s "$SDK_PATH" /home/runner/.buildozer/android/platform/android-sdk
+        echo "SDK and legacy sdkmanager symlinks configured successfully."
 
     - name: Build APK with Buildozer
       run: |
