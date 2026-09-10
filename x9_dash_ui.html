@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X9 // Dual-Track Tactical Vault</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { background: #0b0c10; color: #ff6b00; font-family: monospace; margin: 0; padding: 12px; }
+  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ff6b00; padding-bottom: 8px; margin-bottom: 12px; }
+  .title { font-size: 0.85rem; font-weight: bold; color: #ff8c00; letter-spacing: 1px; }
+  .badge { color: #00ff66; font-size: 0.65rem; text-align: right; }
+  
+  .card { border: 1px dashed #ff6b00; padding: 12px; margin-bottom: 12px; border-radius: 4px; background: #121317; }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .card-title { font-size: 0.75rem; font-weight: bold; color: #ff8c00; text-transform: uppercase; }
+  
+  .telemetry-bar { display: flex; justify-content: space-between; background: #000; border: 1px solid #222; padding: 6px 10px; border-radius: 3px; font-size: 0.65rem; color: #00ff66; margin-bottom: 8px; }
+  .peer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .peer-box { background: #000; border: 1px solid #333; padding: 6px; border-radius: 3px; font-size: 0.65rem; display: flex; justify-content: space-between; align-items: center; }
+  .peer-status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00ff66; box-shadow: 0 0 4px #00ff66; }
+
+  /* RBAC Selector */
+  .rbac-bar { display: flex; gap: 8px; align-items: center; background: #000; border: 1px solid #333; padding: 8px; border-radius: 4px; margin-bottom: 12px; font-size: 0.7rem; }
+  .rbac-select { background: #121317; color: #ff8c00; border: 1px solid #ff6b00; padding: 4px; font-family: monospace; font-weight: bold; border-radius: 3px; flex: 1; }
+
+  /* Tactical Controls */
+  .tactical-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .btn-tactical { background: #1f1a00; border: 1px solid #ffc107; color: #ffc107; padding: 8px; font-family: monospace; font-size: 0.65rem; font-weight: bold; cursor: pointer; border-radius: 3px; text-align: center; }
+  .btn-panic { background: #d32f2f; color: #fff; border: none; padding: 12px; width: 100%; font-family: monospace; font-size: 0.85rem; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
+
+  .qr-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; background: #000; border: 1px solid #222; border-radius: 4px; }
+  #qrcode { background: #fff; padding: 6px; border-radius: 4px; margin-bottom: 6px; }
+  #qrcode img { display: block; }
+  .qr-url { font-size: 0.65rem; color: #00ff66; word-break: break-all; text-align: center; }
+
+  .drop-zone { border: 2px dashed #ff6b00; padding: 16px; text-align: center; cursor: pointer; color: #ff8c00; background: #1a1005; border-radius: 4px; }
+  .sub-text { font-size: 0.65rem; color: #888; margin-top: 4px; }
+  
+  .file-item { display: flex; flex-direction: column; gap: 8px; background: #000; padding: 10px; border: 1px solid #333; margin-top: 8px; font-size: 0.75rem; border-radius: 3px; }
+  .file-meta { width: 100%; word-break: break-all; overflow-wrap: anywhere; }
+  .file-name { font-weight: bold; color: #fff; margin-bottom: 4px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .tag { background: #1f1a00; color: #ffc107; border: 1px solid #ffc107; font-size: 0.6rem; padding: 2px 6px; border-radius: 2px; }
+  .tag-sec { background: #2a0000; color: #ff5252; border: 1px solid #ff5252; }
+
+  .btn-group { display: flex; gap: 6px; width: 100%; margin-top: 4px; }
+  .btn-action { flex: 1; padding: 10px 4px; font-family: monospace; font-size: 0.7rem; font-weight: bold; cursor: pointer; border: none; border-radius: 3px; text-align: center; }
+  .btn-download { background: #00c853; color: #000; }
+  .btn-map { background: #ff8c00; color: #000; }
+  .btn-refresh { background: #333; color: #ff8c00; border: 1px solid #ff6b00; padding: 2px 8px; font-size: 0.65rem; }
+
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 999; justify-content: center; align-items: center; padding: 15px; }
+  .modal-content { background: #121317; border: 1px solid #ff6b00; border-radius: 4px; padding: 15px; width: 100%; max-width: 420px; color: #fff; font-size: 0.75rem; box-shadow: 0 0 15px rgba(255,107,0,0.3); }
+  .modal-header { font-weight: bold; color: #ff8c00; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .prov-row { background: #000; border: 1px solid #222; padding: 8px; margin-bottom: 6px; font-size: 0.65rem; display: flex; flex-direction: column; gap: 4px; border-radius: 3px; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">X9 // DUAL-TRACK VAULT</div>
+    <div class="badge">TACTICAL & ENTERPRISE</div>
+  </div>
+
+  <!-- RBAC Clearance Bar -->
+  <div class="rbac-bar">
+    <label>ACTIVE ROLE:</label>
+    <select id="roleSelect" class="rbac-select">
+      <option value="OPERATOR">OPERATOR (FIELD ACCESSIBLE)</option>
+      <option value="COMMANDER">COMMANDER (TOP_SECRET CLEARANCE)</option>
+      <option value="AUDITOR">AUDITOR (READ ONLY)</option>
+    </select>
+  </div>
+
+  <!-- Tactical Switch Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Tactical Deadman & Zeroization</div>
+      <span id="deadmanBadge" style="color:#888; font-size:0.65rem;">DISARMED</span>
+    </div>
+    <div class="tactical-grid">
+      <button class="btn-tactical" onclick="toggleDeadman('arm')">ARM DEADMAN (2M)</button>
+      <button class="btn-tactical" onclick="toggleDeadman('ping')">PING HEARBEAT</button>
+    </div>
+  </div>
+
+  <!-- Telemetry Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Subnet Mesh Telemetry</div>
+      <span class="sub-text" style="color:#00ff66;">AUTONOMOUS HEALING</span>
+    </div>
+    <div class="telemetry-bar">
+      <span>RAM: <b id="ramStat">-- MB</b></span>
+      <span>SOCKETS: <b id="sockStat">--</b></span>
+      <span>DEADMAN: <b id="deadStat" style="color:#ff5252;">OFF</b></span>
+    </div>
+    <div class="peer-grid">
+      <div class="peer-box"><span>NODE 9101</span> <span class="peer-status"></span></div>
+      <div class="peer-box"><span>NODE 9102</span> <span class="peer-status"></span></div>
+      <div class="peer-box"><span>NODE 9103</span> <span class="peer-status"></span></div>
+      <div class="peer-box"><span>NODE 9104</span> <span class="peer-status"></span></div>
+    </div>
+  </div>
+
+  <!-- QR Pairing Card -->
+  <div class="card">
+    <div class="card-title">Subnet Direct QR Access</div>
+    <div class="qr-container">
+      <div id="qrcode"></div>
+      <div class="qr-url" id="qrUrl">Resolving address...</div>
+    </div>
+  </div>
+
+  <!-- Sharding Ingestion Engine -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Binary Sharding Engine</div>
+      <select id="classSelect" class="rbac-select" style="max-width: 140px;">
+        <option value="RESTRICTED">RESTRICTED</option>
+        <option value="TOP_SECRET">TOP_SECRET</option>
+        <option value="EPHEMERAL">EPHEMERAL</option>
+      </select>
+    </div>
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+      <strong>DROP FILE TO SHARD & PROPAGATE</strong>
+      <div class="sub-text">PDF, Audio, Binaries, Payload Keys</div>
+      <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this.files[0])">
+    </div>
+  </div>
+
+  <!-- Vault Objects Card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Vault Objects & Lineage</div>
+      <button class="btn-refresh" onclick="refreshFiles()">SYNC MESH</button>
+    </div>
+    <div id="fileList"><div class="sub-text">No sharded objects in memory.</div></div>
+  </div>
+
+  <button class="btn-panic" onclick="zeroize()">Zeroize & Purge All RAM</button>
+
+  <!-- Cryptographic Provenance Modal -->
+  <div class="modal-overlay" id="provModal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span>CRYPTOGRAPHIC PROVENANCE MAP</span>
+        <span style="cursor:pointer; color:#ff6b00; font-size:1rem;" onclick="closeModal()">&#10005;</span>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+<script>
+let currentVault = [];
+
+async function updateInfo() {
+  try {
+    let res = await fetch('/api/info');
+    let info = await res.json();
+    
+    document.getElementById('ramStat').innerText = info.ram_usage_mb + " MB";
+    document.getElementById('sockStat').innerText = info.active_sockets;
+    
+    if(info.deadman_armed) {
+      document.getElementById('deadStat').innerText = info.deadman_remaining + "s";
+      document.getElementById('deadmanBadge').innerText = "ARMED (" + info.deadman_remaining + "s)";
+      document.getElementById('deadmanBadge').style.color = "#ff5252";
+    } else {
+      document.getElementById('deadStat').innerText = "OFF";
+      document.getElementById('deadmanBadge').innerText = "DISARMED";
+      document.getElementById('deadmanBadge').style.color = "#888";
+    }
+    
+    let targetUrl = `http://${info.lan_ip}:${info.port}/`;
+    if(document.getElementById('qrUrl').innerText !== targetUrl) {
+      document.getElementById('qrUrl').innerText = targetUrl;
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: targetUrl, width: 120, height: 120,
+        colorDark : "#000000", colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    }
+  } catch(e){}
+}
+
+async function toggleDeadman(action) {
+  await fetch('/api/deadman', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ action: action })
+  });
+  updateInfo();
+}
+
+async function refreshFiles() {
+  try {
+    let res = await fetch('/api/list');
+    currentVault = await res.json();
+    let container = document.getElementById('fileList');
+    if(!currentVault || currentVault.length === 0) {
+      container.innerHTML = '<div class="sub-text">No sharded objects in memory.</div>';
+      return;
+    }
+    container.innerHTML = currentVault.map((f, i) => {
+      let prov = f.provenance || [];
+      let secClass = f.classification || "RESTRICTED";
+      return `
+        <div class="file-item">
+          <div class="file-meta">
+            <div class="file-name">${f.name}</div>
+            <div class="tag-row">
+              <span class="tag tag-sec">CLASS: ${secClass}</span>
+              <span class="tag">QUORUM: ${prov.length}/4 PEERS</span>
+            </div>
+            <div class="sub-text">${f.shards} SHARDS // ${(f.size/1024).toFixed(1)} KB // PROVENANCE: DISTRIBUTED</div>
+          </div>
+          <div class="btn-group">
+            <button class="btn-action btn-download" onclick="downloadFile('${f.file_id}')">RECONSTRUCT</button>
+            <button class="btn-action btn-map" onclick="showProvenance(${i})">VIEW PROVENANCE</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(e){}
+}
+
+function showProvenance(index) {
+  let item = currentVault[index];
+  if(!item) return;
+  let prov = item.provenance || [];
+  let html = `<div style="margin-bottom:10px; color:#ff8c00;"><b>OBJECT:</b> ${item.name}<br><span style="color:#888;">MARKING: ${item.classification} // TOTAL SHARDS: ${item.shards}</span></div>`;
+  prov.forEach(p => {
+    html += `
+      <div class="prov-row">
+        <div style="display:flex; justify-content:space-between;">
+          <span><b>NODE:</b> ${p.node}</span>
+          <span style="color:#00ff66;">${p.status}</span>
+        </div>
+        <div style="color:#ffc107;">RANGE: ${p.shards}</div>
+        <div style="color:#888; font-size:0.55rem;">${p.hash}</div>
+      </div>
+    `;
+  });
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('provModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('provModal').style.display = 'none';
+}
+
+function uploadFile(file) {
+  if(!file) return;
+  let classification = document.getElementById('classSelect').value;
+  let reader = new FileReader();
+  reader.onload = async function() {
+    let b64 = reader.result.split(',')[1];
+    await fetch('/api/ingest', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name: file.name, mime: file.type, data_b64: b64, classification: classification })
+    });
+    refreshFiles();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function downloadFile(fileId) {
+  let role = document.getElementById('roleSelect').value;
+  let res = await fetch(`/api/reconstruct?file_id=${fileId}&role=${role}`);
+  if(res.status === 403) {
+    alert("ACCESS DENIED: Role [" + role + "] lacks clearance for this payload marking.");
+    return;
+  }
+  let data = await res.json();
+  if(data.data_b64) {
+    let a = document.createElement('a');
+    a.href = `data:${data.mime || 'application/octet-stream'};base64,${data.data_b64}`;
+    a.download = data.name;
+    a.click();
+  }
+}
+
+async function zeroize() {
+  if(confirm("TACTICAL PANIC: PURGE ALL RAM NODES IMMEDIATELY?")) {
+    await fetch('/api/purge', { method: 'POST' });
+    refreshFiles();
+  }
+}
+
+setInterval(updateInfo, 1000);
+setInterval(refreshFiles, 3000);
+updateInfo();
+refreshFiles();
+</script>
+</body>
+</html>
