@@ -47,13 +47,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install "cython<3.0.0" buildozer kivy
 
-    - name: Build APK with Buildozer (Verbose Debug)
+    - name: Build APK with Buildozer
       run: |
-        buildozer --debug -v android debug || true
-        ls -la bin/
+        buildozer -v android debug
+        echo "Locating generated APK files:"
+        find . -name "*.apk" -ls
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: X9-Vault-APK
-        path: bin/*.apk
+        path: |
+          bin/*.apk
+          *.apk
+          **/bin/*.apk
+        if-no-files-found: error
