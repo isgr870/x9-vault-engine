@@ -24,11 +24,10 @@ jobs:
         sudo apt-get install -y \
           build-essential ccache git libffi-dev libssl-dev python3-dev \
           zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
-          libncurses-dev cmake
+          libncurses-dev cmake rustc cargo
 
-    - name: Install Rust & Android Targets
+    - name: Install Rust Android Targets
       run: |
-        rustup default stable
         rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
 
     - name: Install Pinned Python Build Tools

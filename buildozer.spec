@@ -6,7 +6,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,html,css,js,pem
 version = 1.0.0
 
-requirements = python3,kivy,pyjnius,openssl,cryptography,requests,urllib3
+requirements = python3,kivy,pyjnius,openssl,cryptography==38.0.4,requests,urllib3
 
 orientation = portrait
 fullscreen = 0
