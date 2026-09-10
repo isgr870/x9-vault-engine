@@ -19,7 +19,7 @@ jobs:
         python-version: '3.10'
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -27,9 +27,8 @@ jobs:
     - name: Setup Android SDK & Accept Licenses
       uses: android-actions/setup-android@v3
       with:
-        build-tools-version: "33.0.2"
-        min-sdk-version: "24"
-        platform-version: "33"
+        packages: 'build-tools;33.0.2 platforms;android-33'
+        accept-android-sdk-licenses: true
 
     - name: Install System Dependencies & Rust
       run: |
