@@ -36,7 +36,7 @@ jobs:
         sudo apt-get install -y \
           build-essential ccache git libffi-dev libssl-dev python3-dev \
           zip unzip autoconf automake libtool libtool-bin gettext autopoint \
-          pkg-config zlib1g-dev libncurses-dev cmake rustc cargo
+          pkg-config zlib1g-dev libncurses-dev cmake rustc cargo dh-autoreconf
 
     - name: Install Rust Android Targets
       run: |
@@ -47,7 +47,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install "cython<3.0.0" buildozer kivy
 
-    - name: Configure Buildozer SDK & Legacy Tools Symlinks
+    - name: Configure Buildozer SDK & Macro Paths
       run: |
         SDK_PATH="/usr/local/lib/android/sdk"
         mkdir -p "$SDK_PATH/tools/bin"
@@ -57,12 +57,13 @@ jobs:
         mkdir -p /home/runner/.buildozer/android/platform
         rm -rf /home/runner/.buildozer/android/platform/android-sdk
         ln -s "$SDK_PATH" /home/runner/.buildozer/android/platform/android-sdk
-        echo "SDK and legacy sdkmanager symlinks configured successfully."
+        echo "SDK and symlinks configured successfully."
 
     - name: Build APK with Buildozer
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+        export ACLOCAL_PATH="/usr/share/aclocal:/usr/share/automake-1.16"
         buildozer -v android debug
         echo "Locating generated APK files:"
         find . -name "*.apk" -ls
