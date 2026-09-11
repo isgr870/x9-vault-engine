@@ -36,7 +36,7 @@ jobs:
         sudo apt-get install -y \
           build-essential ccache git libffi-dev libssl-dev python3-dev \
           zip unzip autoconf automake libtool libtool-bin gettext autopoint \
-          pkg-config zlib1g-dev libncurses-dev cmake rustc cargo dh-autoreconf
+          pkg-config zlib1g-dev libncurses-dev cmake rustc cargo dh-autoreconf libltdl-dev
 
     - name: Install Rust Android Targets
       run: |
@@ -63,7 +63,7 @@ jobs:
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
-        export ACLOCAL_PATH="/usr/share/aclocal:/usr/share/automake-1.16"
+        export ACLOCAL_PATH="/usr/share/aclocal"
         buildozer -v android debug
         echo "Locating generated APK files:"
         find . -name "*.apk" -ls
