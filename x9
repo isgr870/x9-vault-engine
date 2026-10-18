@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+if [ "$1" = "wake" ]; then
+    echo "[X9] Initializing X9 Vault on port 8090..."
+    cd ~/x9-vault
+    exec python3 app.py
+else
+    echo "Usage: x9 wake"
+fi
