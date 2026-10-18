@@ -471,7 +471,12 @@ class X9DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"status": "ok"}).encode())
 
-if __name__ == "__main__":
+
+def run_server():
     threading.Thread(target=monitor_panic_hook, daemon=True).start()
     print(f"[*] X9 Engine operational on port {HTTP_PORT}...")
-    HTTPServer(('0.0.0.0', HTTP_PORT), X9DashboardHandler).serve_forever()
+    server = HTTPServer(('0.0.0.0', HTTP_PORT), X9DashboardHandler)
+    server.serve_forever()
+
+if __name__ == "__main__":
+    run_server()
