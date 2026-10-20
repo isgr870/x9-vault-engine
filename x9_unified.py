@@ -1,3 +1,15 @@
+
+def validate_filename(name: str) -> bool:
+    import re
+    if not name or ".." in name:
+        return False
+    return bool(re.match(r"^[a-zA-Z0-9_\-\./]+$", name))
+
+
+import logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logger = logging.getLogger("x9_vault")
+
 import os
 import io
 import sys
@@ -35,7 +47,7 @@ def zeroize_all():
     VAULT_STORE.clear()
     DEADMAN_ARMED = False
     DEADMAN_EXPIRE_TIME = 0
-    print("\n[!] *** EMERGENCY ZEROIZATION: All In-Memory Files & Shards Purged *** [!]")
+    logger.info("\n[!] *** EMERGENCY ZEROIZATION: All In-Memory Files & Shards Purged *** [!]")
 
 def monitor_panic_hook():
     global DEADMAN_ARMED, DEADMAN_EXPIRE_TIME
@@ -358,6 +370,15 @@ class X9DashboardHandler(BaseHTTPRequestHandler):
         return
 
     def do_GET(self):
+        if self.path == "/healthz":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            import json
+            payload = {"status": "ok", "deadman_armed": globals().get("DEADMAN_ARMED", False)}
+            self.wfile.write(json.dumps(payload).encode("utf-8"))
+            return
+
         if self.path == '/':
             html = build_html_dashboard().encode()
             self.send_response(200)
@@ -474,7 +495,7 @@ class X9DashboardHandler(BaseHTTPRequestHandler):
 
 def run_server():
     threading.Thread(target=monitor_panic_hook, daemon=True).start()
-    print(f"[*] X9 Engine operational on port {HTTP_PORT}...")
+    logger.info(f"[*] X9 Engine operational on port {HTTP_PORT}...")
     server = HTTPServer(('0.0.0.0', HTTP_PORT), X9DashboardHandler)
     server.serve_forever()
 

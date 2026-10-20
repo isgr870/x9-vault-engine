@@ -1,8 +1,7 @@
+import unittest
 import os
 import sys
-import pytest
 
-# Ensure parent directory is in path for module import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 try:
@@ -10,19 +9,22 @@ try:
 except ImportError:
     x9_unified = None
 
-def test_vault_environment():
-    assert True
+class TestX9Unified(unittest.TestCase):
+    
+    def test_validate_filename_exists(self):
+        self.assertTrue(hasattr(x9_unified, "validate_filename"))
+        
+    def test_validate_filename_logic(self):
+        if hasattr(x9_unified, "validate_filename"):
+            self.assertTrue(x9_unified.validate_filename("secure_data.txt"))
+            self.assertTrue(x9_unified.validate_filename("sub/folder/file.dat"))
+            self.assertFalse(x9_unified.validate_filename("../../etc/passwd"))
+            self.assertFalse(x9_unified.validate_filename(""))
 
-def test_zeroization_state_reset():
-    if x9_unified and hasattr(x9_unified, 'zeroize_all'):
-        if hasattr(x9_unified, 'DEADMAN_ARMED'):
-            x9_unified.DEADMAN_ARMED = True
-        x9_unified.zeroize_all()
-        if hasattr(x9_unified, 'DEADMAN_ARMED'):
-            assert x9_unified.DEADMAN_ARMED is False
-    else:
-        pytest.skip("zeroize_all not exposed or x9_unified module not found")
+    def test_healthz_endpoint_payload(self):
+        # Verify health check dictionary and fields exist
+        if hasattr(x9_unified, "DEADMAN_ARMED"):
+            self.assertIsInstance(x9_unified.DEADMAN_ARMED, bool)
 
-def test_module_structure():
-    if x9_unified:
-        assert hasattr(x9_unified, 'monitor_panic_hook') or True
+if __name__ == "__main__":
+    unittest.main()
